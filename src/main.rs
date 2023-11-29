@@ -1,23 +1,23 @@
 #![no_std]
 #![no_main]
 
-use core::panic::PanicInfo;
+mod vga;
 
-static STR: &[u8] = b"Hello kernel world!";
+use core::panic;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-    for (i, &c) in STR.iter().enumerate() {
-        unsafe {
-            *(vga_buffer.add(i * 2)) = c;
-            *(vga_buffer.add(i * 2 + 1)) = 0x8c;    // bright red
-        }
+    println!("Hello {}", "world");
+    println!("2 + 3 = {}", 2 + 3);
+    println!("2 > 3 ? {}", 2 > 3);
+    for _i in 0..160 {
+        print!("a");
     }
-    loop {}
+    panic!("Normal exit");
 }
 
 #[panic_handler]
-fn panic(_panic_info: &PanicInfo) -> ! {
+fn panic(panic_info: &panic::PanicInfo) -> ! {
+    println!("{panic_info}");
     loop {}
 }
