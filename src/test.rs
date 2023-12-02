@@ -1,16 +1,10 @@
-#![cfg(test)]
-
-use core::panic;
+/// Due to the fact that "test_runner" attribute in main.rs
+/// need to take effect whatever in non-test case or test
+/// case, we have to make this module absolutely visible.
+/// As a result, we removed #![cfg(test)] attribute.
 use crate::{serial_print, serial_println};
 use crate::exit_qemu;
-
-// use in testing
-#[panic_handler]
-fn panic(panic_info: &panic::PanicInfo) -> ! {
-    serial_println!("{panic_info}");
-    exit_qemu::exit_qemu(exit_qemu::ExitCode::Failed);
-    loop {}
-}
+use core::panic;
 
 pub trait Testable {
     fn run(&self);
@@ -30,4 +24,8 @@ pub fn tester(tests: &[&dyn Testable]) {
         test.run();
     }
     exit_qemu::exit_qemu(exit_qemu::ExitCode::Success);
+}
+
+pub fn panic_used_in_tests(panic_info: &panic::PanicInfo) {
+    serial_println!("{panic_info}");
 }

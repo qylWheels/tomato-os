@@ -1,15 +1,11 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(test::tester)]
+#![test_runner(tomato_os::test::tester)]
 #![reexport_test_harness_main = "test_main"]
 
-mod exit_qemu;
-mod serial_print;
-mod test;
-mod vga;
-
 use core::panic;
+use tomato_os::{print, println};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -25,11 +21,21 @@ pub extern "C" fn _start() -> ! {
     panic!("Normal exit");
 }
 
-// used in normal case
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(panic_info: &panic::PanicInfo) -> ! {
     println!("{panic_info}");
+    loop {}
+}
+
+#[cfg(test)]
+use tomato_os::exit_qemu;
+#[cfg(test)]
+#[panic_handler]
+fn panic(panic_info: &panic::PanicInfo) -> ! {
+    use tomato_os::serial_println;
+    serial_println!("{panic_info}");
+    exit_qemu::exit_qemu(exit_qemu::ExitCode::Failed);
     loop {}
 }
 
