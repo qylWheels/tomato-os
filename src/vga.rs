@@ -85,7 +85,7 @@ lazy_static! {
     static ref VGA_BUFFER_HANDLE: spin::Mutex<VGABuffer> = spin::Mutex::new(VGABuffer {
         buf: unsafe {
             let ptr = 0xb8000 as *mut u8 as *mut volatile::Volatile<u8>;
-            slice::from_raw_parts_mut(ptr, MAX_LINE * MAX_COL)
+            slice::from_raw_parts_mut(ptr, MAX_LINE * MAX_COL * 2)
         },
         cur_line: 0,
         cur_col: 0,

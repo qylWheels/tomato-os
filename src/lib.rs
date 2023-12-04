@@ -3,8 +3,10 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(test::tester)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(abi_x86_interrupt)]
 
 pub mod exit_qemu;
+pub mod interrupt;
 pub mod serial_print;
 pub mod test;
 pub mod vga;
@@ -26,19 +28,4 @@ fn panic(panic_info: &panic::PanicInfo) -> ! {
     serial_println!("{panic_info}");
     exit_qemu::exit_qemu(exit_qemu::ExitCode::Failed);
     loop {}
-}
-
-#[test_case]
-fn test_in_lib1() {
-	assert!("tomato" == concat!("to", "mato"));
-}
-
-#[test_case]
-fn test_in_lib2() {
-	assert!("potato" == concat!("po", "tato"));
-}
-
-#[test_case]
-fn test_in_lib3() {
-	assert!("114514" == concat!(114, 514));
 }
