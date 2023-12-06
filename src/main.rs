@@ -6,8 +6,7 @@
 
 use core::panic;
 use tomato_os::println;
-use tomato_os::interrupt;
-use x86_64::instructions::interrupts;
+use tomato_os::{interrupt, gdt};
 
 static STARTUP_ASCII_PATTERN: &str = "
 ,--------.                          ,--.              ,-----.  ,---.   
@@ -23,12 +22,17 @@ pub extern "C" fn _start() -> ! {
 
     // initialization
     interrupt::init_idt();
+    gdt::init_gdt();
 
     #[cfg(test)]
     test_main();
 
-    // toggle a breakpoint exception manually
-    interrupts::int3();
+    // toggle a double fault exception manually
+    #[allow(unconditional_recursion)]
+    fn kernel_stack_overflow() {
+        kernel_stack_overflow();
+    }
+    kernel_stack_overflow();
 
     println!("Tomato OS is still under development!");
 

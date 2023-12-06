@@ -6,6 +6,7 @@
 #![feature(abi_x86_interrupt)]
 
 pub mod exit_qemu;
+pub mod gdt;
 pub mod interrupt;
 pub mod serial_print;
 pub mod test;
