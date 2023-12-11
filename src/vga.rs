@@ -94,10 +94,14 @@ lazy_static! {
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    VGA_BUFFER_HANDLE
-        .lock()
-        .write_fmt(args)
-        .unwrap();
+    // Avoid deadlock
+    use x86_64::instructions::interrupts::without_interrupts;
+    without_interrupts(|| {
+        VGA_BUFFER_HANDLE
+            .lock()
+            .write_fmt(args)
+            .unwrap();
+    })
 }
 
 #[macro_export]

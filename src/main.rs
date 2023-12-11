@@ -5,10 +5,11 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic;
-use tomato_os::println;
 use tomato_os::{interrupt, gdt};
+use tomato_os::hlt_loop::hlt_loop;
+use tomato_os::println;
 
-static STARTUP_ASCII_PATTERN: &str = "
+const STARTUP_ASCII_PATTERN: &str = "
 ,--------.                          ,--.              ,-----.  ,---.   
 '--.  .--',---. ,--,--,--. ,--,--.,-'  '-. ,---.     '  .-.  ''   .-'  
    |  |  | .-. ||        |' ,-.  |'-.  .-'| .-. |    |  | |  |`.  `-.  
@@ -21,22 +22,20 @@ pub extern "C" fn _start() -> ! {
     println!("{STARTUP_ASCII_PATTERN}");
 
     // initialization
-    interrupt::init_idt();
+    interrupt::init_interrupts();
     gdt::init_gdt();
 
     #[cfg(test)]
     test_main();
 
-    // toggle a double fault exception manually
-    #[allow(unconditional_recursion)]
-    fn kernel_stack_overflow() {
-        kernel_stack_overflow();
-    }
-    kernel_stack_overflow();
-
     println!("Tomato OS is still under development!");
 
-    loop {}
+    // Test if there is a deadlock
+    // for i in 0.. {
+    //     print!("{i}");
+    // }
+
+    hlt_loop();
 }
 
 #[cfg(not(test))]

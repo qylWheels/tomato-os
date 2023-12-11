@@ -7,6 +7,7 @@
 
 pub mod exit_qemu;
 pub mod gdt;
+pub mod hlt_loop;
 pub mod interrupt;
 pub mod serial_print;
 pub mod test;
