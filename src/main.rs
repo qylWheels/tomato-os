@@ -17,6 +17,7 @@ const STARTUP_ASCII_PATTERN: &str = "
    `--'   `---' `--`--`--' `--`--'  `--'   `---'      `-----' `-----'  
 ";
 
+/// Entry point of the kernel.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("{STARTUP_ASCII_PATTERN}");
@@ -29,11 +30,6 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     println!("Tomato OS is still under development!");
-
-    // Test if there is a deadlock
-    // for i in 0.. {
-    //     print!("{i}");
-    // }
 
     hlt_loop();
 }

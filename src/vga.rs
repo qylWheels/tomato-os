@@ -1,3 +1,5 @@
+//! Screen output mechanism.
+
 use core::{fmt::{self, Write}, ptr, slice};
 use lazy_static::lazy_static;
 use spin;
@@ -6,6 +8,7 @@ use volatile;
 const MAX_LINE: usize = 25;
 const MAX_COL: usize = 80;
 
+#[derive(Debug)]
 struct VGABuffer {
     buf: &'static mut [volatile::Volatile<u8>],
     cur_line: usize,
@@ -13,6 +16,7 @@ struct VGABuffer {
 }
 
 impl VGABuffer {
+    /// Set the VGA pointer.
     fn set_pos(&mut self, line: usize, col: usize) {
         assert!(line < MAX_LINE);
         assert!(col < MAX_COL);
@@ -20,23 +24,26 @@ impl VGABuffer {
         self.cur_col = col;
     }
 
+    /// Create a new blank line under the current line.
     fn new_blank_line(&mut self) {
         if self.cur_line + 1 >= MAX_LINE {
-            self.shift_up()
+            self.shift_up();
         }
         self.set_pos(self.cur_line + 1, 0);
-        for _i in 0..MAX_COL {
+        for i in 0..MAX_COL {
+            self.set_pos(self.cur_line, i);
             self.write_byte(b' ', 0);
         }
+        self.set_pos(self.cur_line, 0);
     }
 
-    // shift up a line without clearing the bottom line
+    /// Shift the screen up by a line without clearing the bottom line.
     fn shift_up(&mut self) {
         unsafe {
             ptr::copy(
                 (self.buf.as_ptr().add(1 * MAX_COL * 2)) as *const u8,
                 (self.buf.as_ptr()) as *mut u8,
-                (MAX_LINE - 1) * MAX_COL,
+                (MAX_LINE - 1) * MAX_COL * 2,
             );
         }
         if self.cur_line > 0 {
@@ -44,6 +51,9 @@ impl VGABuffer {
         }
     }
 
+    /// Write a colored byte to the screen.
+    /// Position is specified implicitly and will not increase automatically.
+    /// If you want to specify the position explicitly, use `set_pos()`.
     fn write_byte(&mut self, byte: u8, color: u8) {
         match byte {
             b'\n' => self.new_blank_line(),
@@ -56,9 +66,10 @@ impl VGABuffer {
 }
 
 impl fmt::Write for VGABuffer {
+    /// Write a string to the screen.
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for index_and_byte in s.bytes().enumerate() {
-            self.write_byte(index_and_byte.1, 0x0e);
+            self.write_byte(index_and_byte.1, 0xf);
             // We've already moved the pointer if current character is '\n'
             // so we don't need to move it again.
             if index_and_byte.1 != b'\n' {      
