@@ -26,6 +26,19 @@ pub extern "C" fn _start() -> ! {
     interrupt::init_interrupts();
     gdt::init_gdt();
 
+    // Provoke a page fault
+    let p = 0x205331 as *mut u8;
+    unsafe {
+        println!("*p = {}", *p);
+        println!("Read successful");
+        *p = 42;
+        println!("Write successful");
+    }
+
+    // Get physical address of level 4 page table
+    use x86_64::registers::control::Cr3;
+    println!("Physical address of level 4 page table: {:?}", Cr3::read().0.start_address());
+
     #[cfg(test)]
     test_main();
 
