@@ -32,7 +32,7 @@ lazy_static! {
 }
 
 /// Initialize interrupts
-pub fn init_interrupts() {
+pub fn init() {
     IDT.load();
     hardware_interrupt::init_8259();
     interrupts::enable();
@@ -70,6 +70,6 @@ extern "x86-interrupt" fn page_fault_handler(
 #[test_case]
 fn test_int3() {
     use x86_64::instructions::interrupts::int3;
-    init_interrupts();
+    init();
     int3();
 }

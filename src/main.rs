@@ -4,10 +4,13 @@
 #![test_runner(tomato_os::test::tester)]
 #![reexport_test_harness_main = "test_main"]
 
+use bootloader::{BootInfo, entry_point};
 use core::panic;
 use tomato_os::{interrupt, gdt};
 use tomato_os::hlt_loop::hlt_loop;
+use tomato_os::memory;
 use tomato_os::println;
+use x86_64::VirtAddr;
 
 const STARTUP_ASCII_PATTERN: &str = "
 ,--------.                          ,--.              ,-----.  ,---.   
@@ -17,27 +20,19 @@ const STARTUP_ASCII_PATTERN: &str = "
    `--'   `---' `--`--`--' `--`--'  `--'   `---'      `-----' `-----'  
 ";
 
+// Use "kernel_main()" as kernel entry point.
+entry_point!(kernel_main);
+
 /// Entry point of the kernel.
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     println!("{STARTUP_ASCII_PATTERN}");
 
-    // initialization
-    interrupt::init_interrupts();
-    gdt::init_gdt();
-
-    // Provoke a page fault
-    let p = 0x205331 as *mut u8;
+    // Initialization.
+    interrupt::init();
+    gdt::init();
     unsafe {
-        println!("*p = {}", *p);
-        println!("Read successful");
-        *p = 42;
-        println!("Write successful");
+        memory::init(&boot_info.memory_map, VirtAddr::new(boot_info.physical_memory_offset));
     }
-
-    // Get physical address of level 4 page table
-    use x86_64::registers::control::Cr3;
-    println!("Physical address of level 4 page table: {:?}", Cr3::read().0.start_address());
 
     #[cfg(test)]
     test_main();
@@ -51,7 +46,7 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(panic_info: &panic::PanicInfo) -> ! {
     println!("{panic_info}");
-    loop {}
+    hlt_loop();
 }
 
 #[cfg(test)]

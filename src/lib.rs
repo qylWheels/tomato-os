@@ -9,16 +9,24 @@ pub mod exit_qemu;
 pub mod gdt;
 pub mod hlt_loop;
 pub mod interrupt;
+pub mod memory;
 pub mod serial_print;
 pub mod test;
 pub mod vga;
 
+#[cfg(test)]
+use bootloader::{BootInfo, entry_point};
+#[cfg(test)]
+use hlt_loop::hlt_loop;
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
 /// This entry point is only used when testing
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     test_main();
-    loop {}
+    hlt_loop();
 }
 
 /// Only used when testing

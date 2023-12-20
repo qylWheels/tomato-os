@@ -33,7 +33,7 @@ lazy_static! {
 }
 
 // Initialize GDT
-pub fn init_gdt() {
+pub fn init() {
 	GDT.0.load();
 	unsafe {
 		segmentation::CS::set_reg(GDT.1.kernel_code_selector);
