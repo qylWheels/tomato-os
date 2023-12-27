@@ -4,6 +4,7 @@
 #![test_runner(tomato_os::test::tester)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
 use bootloader::{BootInfo, entry_point};
 use core::panic;
 use tomato_os::{interrupt, gdt};
@@ -33,6 +34,19 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     unsafe {
         memory::init(&boot_info.memory_map, VirtAddr::new(boot_info.physical_memory_offset));
     }
+
+    // Use smart pointers and collections!
+    use alloc::boxed::Box;
+    let i = Box::new(42);
+    println!("{i:p}");
+
+    use alloc::vec;
+    let mut v = vec![1, 1, 4, 5, 1, 4];
+    for i in [1, 9, 1, 9, 8, 1, 0] {
+        v.push(i)
+    }
+    println!("{:p}", v.as_slice());
+    println!("{v:?}");
 
     #[cfg(test)]
     test_main();
