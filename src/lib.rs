@@ -11,6 +11,7 @@ pub mod hlt_loop;
 pub mod interrupt;
 pub mod memory;
 pub mod serial_print;
+pub mod task;
 pub mod test;
 pub mod vga;
 
