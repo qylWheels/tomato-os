@@ -1,10 +1,11 @@
-mod executor;
+pub mod executor;
 
 extern crate alloc;
 use alloc::boxed::Box;
 use core::future::Future;
 use core::pin::Pin;
 use core::sync::atomic::{AtomicU64, Ordering};
+use core::task::{Poll, Context};
 
 static GLOBAL_TASK_ID_ALLOCATOR: AtomicU64 = AtomicU64::new(0);
 
@@ -23,5 +24,9 @@ impl Task {
             task_id: GLOBAL_TASK_ID_ALLOCATOR.fetch_add(1, Ordering::Relaxed),
             task: Box::pin(task),
         }
+    }
+
+    fn poll(&mut self, context: &mut Context) -> Poll<()> {
+        self.task.as_mut().poll(context)
     }
 }

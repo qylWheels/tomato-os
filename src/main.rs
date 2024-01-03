@@ -35,18 +35,14 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         memory::init(&boot_info.memory_map, VirtAddr::new(boot_info.physical_memory_offset));
     }
 
-    // Use smart pointers and collections!
-    use alloc::boxed::Box;
-    let i = Box::new(42);
-    println!("{i:p}");
+    // Tasks!
+    use tomato_os::task::Task;
+    use tomato_os::task::executor::Executor;
 
-    use alloc::vec;
-    let mut v = vec![1, 1, 4, 5, 1, 4];
-    for i in [1, 9, 1, 9, 8, 1, 0] {
-        v.push(i)
-    }
-    println!("{:p}", v.as_slice());
-    println!("{v:?}");
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(busy_task_2()));
+    executor.spawn(Task::new(busy_task_1()));
+    executor.run();
 
     #[cfg(test)]
     test_main();
@@ -54,6 +50,27 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     println!("Tomato OS is still under development!");
 
     hlt_loop();
+}
+
+async fn loop_until_happy() -> u64 {
+    let mut sum: u64 = 0;
+    for i in 0..100000000 {
+        sum += i;
+    }
+    sum
+}
+
+async fn busy_task_1() {
+    let sum = loop_until_happy().await;
+    println!("sum = {sum}");
+}
+
+async fn busy_task_2() {
+    let mut sum: u64 = 0;
+    for i in 0..10000 {
+        sum += i;
+    }
+    println!("sum = {sum}");
 }
 
 #[cfg(not(test))]
